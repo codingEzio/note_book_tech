@@ -11,6 +11,7 @@
 - The DBMS is a general-purpose software system that 
     > facilitates the process of defining, constructing, manipulating, <br>and sharing databases among various users and applications.
     
+    | opt | detail |
     | --- | --- | 
     | Define | specifying data types, structures, and constraints of the data<br>the db info is stored as a db catalog or directory ( called meta-data ) |
     | Construct | the process of storing the data on some storage medium |
