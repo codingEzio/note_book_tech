@@ -4,20 +4,10 @@
 
 ---------
 
-{{TOC}}
-
----------
-
-
-- This book stresses the fundamentals of
+- This book stresses the fundamentals of
     - *databas modeling and design*
     - *the langs and models provided by the DBMS*
     - *database system implementation techniques*
-
---------- 
-
-
-/img/db-dep-chart.jpg
 
 ----------     
 
@@ -25,6 +15,7 @@
     
 - It can be divided into two-semester course sequence
     
+    |  |  |
     | --- | --- | 
     | Chapter 01 \~ 15 | Dtabase Design and Database Systems |
     | Chapter 16 \~ 29 | Database Models and Implementation Techniques |
