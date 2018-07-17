@@ -10,3 +10,4 @@
     - [ ] Chapter 04 
 - HTTP Definitive Guide 
 - Fundamentals of Database Systems
+- A Common-Sense Guide to DS and Algorithms
