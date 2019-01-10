@@ -1,15 +1,21 @@
-### Foreword
+### Info
 - The version I’m reading is the [chinese version](http://wiki.jikexueyuan.com/project/the-little-redis-book/basics.html).
+
+### Foreword
+- This is just ***notes***, **NOT** reliable tutorials (even for myself).
+- Only two resources were involved (while I was learning)
+    1. the website
+    2. the Redis doc
+- I’m saying that I haven’t digging deep yet. I’ll do it while needed.
 
 -------
 
 ### Getting started
 1. ```brew install redis && redis-server```
 2. ```redis-cli```
-3. ```set user:alex “Hi, this is Alex”``` (example for later use)
 
 ### Concept
-- It got *DBs*, switch by ```SELECT N```.
+- It got *DBs*, switch by ```SELECT n```.
 - Keys’ crucial, values are **not** (only query by key). 
 - Persistence :: MemToDisk :: Snapshot
     - Freq :: ModifiedItems
@@ -17,15 +23,66 @@
         - ```1000+ items | 60 seconds```
 
 ### Get those props!
-- ```strlen <key>```
-- ```append <key> <value>```
-- ```getrange <key> <start> <end>```
+- ```STRLEN <key>```
+- ```APPEND <key> <value>```
+- ```GETRANGE <key> <start> <end>```
+
+### Change values (**int only**, (```INCR``` | ```DECR```))
+- ```INCR <key>```
+- ```INCRBY <key> NUM_WHATEVER```
+
+### For the lord of ```Hash``` !
+- set
+    - ```HSET user:new name “alex”```
+    - ```HMSET user:new name "alex" age 20```
+- get 
+    - ```HGET user:new name```
+    - ```HKEYS user:new```
+    - ```HMGET user:new name age```
+- others
+    - ```HGETALL user:new```
+    - ```HDEL user:new age```
+
+### The ```List``` !!
+- Features
+    - Got *orders*, can be accessed by *index*.
+- Add 
+    - ```LPUSH threetwoone 1 2 3```
+    - ```RPUSH onetwothree 1 2 3```
+- Get 
+    - ```LINDEX example:list 0```
+    - ```LINDEX example:list -1```
+
+### The ***normal*** ```Set``` 
+- Add 
+    - ```SADD friend:alex Johnny Jessi Mona```
+    - ```SADD friend:yori Johnny Jessi Alice```
+- Set opts
+    - ```SINTER friend:alex friend:yori```
+    - ```SINTERSTORE friend:alex_yori_both_have friend:alex friend:yori```
+- Is it
+    - ```SISMEMBER friend:alex Jessi``` (=> ```0```, ```1```)
+
+### The ***sorted*** ```Set```
+- Add 
+    - ```ZADD myrate:celeb Olsen 95 Cameron 85 Swift 10```
+- Rank 
+    - ```ZCOUNT myrate:celeb 80 100``` (=> ```2```)
+    - ```ZRANK myrate:celeb Olsen```  (ASC)
+    - ```ZREVRANK myrate:celeb Olsen```  (DESC)
+
+### Aha !
+- The **commands** are *case-insensitive* <small>( ```GET``` = ```get``` )</small>.
+- Quotation marks (**optional**)
+    - Only the stuff inside is important. 
+        - ```SET grt:hello "wow"```
+        - ```SET grt:dayfreq 3```  <small>( even using ```“3”```, it’s still int )</small>
+- _
 
 ### Cleanup
-- ```flushdb```
+- ```FLUSHDB```
 
 ### Just sayin’
-- The **commands** are *case-insensitive*. ```GET```, ```get``` are the same.
 - It’s ***fast***.
 - It’s ***fast***, not just because it stores items in **RAM**.
 - It definitely will not fit all your needs ( the stuff making you feel *not so great* ).
