@@ -1,10 +1,11 @@
 ## Information Storage 
+
 - 多数计算机采用 *blocks of 8 bits* <small>(bytes)</small> 作为 可寻址的存储器单位 <small>(addressable unit of memory)</small>.
 	> A machine-level program views ***memory*** as <u>a very large array of bytes</u>, 即 *virtual memory*.<br>
 	> 内存中每个字节由 一个唯一的数 标识, 其集合称为 *virtual address namespace*. 
 
 - C 语言中一个*指针的值* 都是**某个存储块的 第一个字节的虚拟地址**.
-	> C 编译器还将每个指针 与其类型信息联系起来. <br>如此, 其根据指针值的类型 生成不同的机器级代码 来访问指针所指向位置的值
+	> C 编译器还将每个指针 与其类型信息联系起来. <br>如此, 其根据指针值的类型生成不同的机器级代码 其用来访问指针所指向位置的值
 
 - 关于 C 语言的指针
 	> 其有两方面: **值** 和 **类型**.
@@ -69,15 +70,11 @@
         -  
 
 - 位级运算 / 逻辑运算
-    - bit-wise opt 
-        - & 
-        - | 
-        - ~ 
-        - ^
-    - logical opt 
-        - && 
-        - || 
-        - !
+    
+    | opt | sym | 
+    | :-- | :--: |
+    | bit-wise | & | \|  | ~  | ^ | 
+    | logical | && | \|\| | ! | 
 
 - 移位运算 <small>( shift operations )</small>
     - 0
