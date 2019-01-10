@@ -1,15 +1,3 @@
-### Info
-- The version I’m reading is the [chinese version](http://wiki.jikexueyuan.com/project/the-little-redis-book/basics.html).
-
-### Foreword
-- This is just ***notes***, **NOT** reliable tutorials (even for myself).
-- Only two resources were involved (while I was learning)
-    1. the website
-    2. the Redis doc
-- I’m saying that I haven’t digging deep yet. I’ll do it while needed.
-
--------
-
 ### Getting started
 1. ```brew install redis && redis-server```
 2. ```redis-cli```
