@@ -53,11 +53,29 @@
 
 ### The ***sorted*** ```Set```
 - Add 
-    - ```ZADD myrate:celeb Olsen 95 Cameron 85 Swift 10```
+    - ```ZADD myrate:celeb 95 Olsen 85 Cameron 10 Swift```
+- Incr
+    - ```ZINCRBY myrate:celeb 5 Olsen``` (=> ```”100”```)
 - Rank 
     - ```ZCOUNT myrate:celeb 80 100``` (=> ```2```)
     - ```ZRANK myrate:celeb Olsen```  (ASC)
     - ```ZREVRANK myrate:celeb Olsen```  (DESC)
+- Set opts
+    - Samples 
+        - ```ZADD mid_test 40 “English”```
+        - ```ZADD mid_test 60 “Math”```
+        - ```ZADD final_test 40 “English”```
+        - ```ZADD final_test 60 “Math”```
+        - ```ZADD final_test 80 “German”```
+    - Syntax
+        - ```SET_OPT_CMD 新集合 集合數目_此處取決於您需結合幾個 其他集合_多個```
+        - ```ZRANGE 集合名 上標 下標 [是否帶上score]```
+    - Examples
+        - ```ZINTERSTORE mixed_point 2 mid_test final_test```
+        - ```ZUNIONSTORE mixed_point 2 mid_test final_test```
+    - Examples for *getting* elements
+        - ```ZRANGE mixed_point 0 -1```
+        - ```ZRANGE mixed_point 0 -1 WITH_SCORES```
 
 ### Aha !
 - The **commands** are *case-insensitive* <small>( ```GET``` = ```get``` )</small>.
@@ -73,4 +91,4 @@
 ### Just sayin’
 - It’s ***fast***.
 - It’s ***fast***, not just because it stores items in **RAM**.
-- It definitely will not fit all your needs ( the stuff making you feel *not so great* ).
+- It definitely won’t fit all your needs ( the stuff making you feel *not so great* ).
