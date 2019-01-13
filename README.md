@@ -1,4 +1,5 @@
 ### Info
+- R in A Nutshell
 - The Little Redis Book
 - Computer Science Illuminated
 - 計算機的心智︰操作系統之哲學原理
