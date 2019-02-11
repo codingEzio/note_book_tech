@@ -1,0 +1,15 @@
+### TOC
+- [x] Introduction
+- Fundamentals
+    - why, when, how, bais-process
+- Lifecycle
+    - different types of tests <-> use the right one at the right time
+    - test levels
+- Static analysis
+    - analyzed but **not exec_ed**
+- Dynamic analysis
+    - black/while box
+    - more details of different tests ( with examples )
+- Test management
+    - more people-related stuff ( in cmp to *software* ) 
+- Test tools 
