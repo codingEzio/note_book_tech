@@ -1,4 +1,7 @@
 ### Info
+- Linux Pocket
+- How Linux Works
+- Software Testing Foundations
 - R in A Nutshell
 - The Little Redis Book
 - Computer Science Illuminated
