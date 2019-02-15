@@ -111,12 +111,80 @@
     chown USER FILES    # who HAVE this file
     chmod      FILES    # what does ANYONE could DO with this file
     ```
+    
+- Process
+
+    ```bash
+    brew install htop     # modern ways to manage processes
+    
+    pidof zsh             # get its PID, apparently :P
+    pidof emacs
+    
+    kill `pidof emacs`    # nice one
+    ```
+    
+- Scheduling jobs
+
+    ```bash
+    sleep 1s                    # any precision is OK
+          1m 
+          1h
+          1d
+    
+    watch -n 2          date    # exec in every two sec
+    watch -n 2 -t       date    # .. plus 'no title'
+    watch -n 2 -t -d    date    # .. plus 'highlighting differences'
+    watch -n 2 -t -d -g date    # .. plus 'exit when output changes'
+    watch -n 2 -t -d -e date    # .. plus 'freeze when err -> exit after press'
+    ```
+    
+- Users & their envrionment
+
+    ```bash
+    logname    # the one you used for logging in
+    whoami     # current username ( e.g. su root -> whoami -> 'root' )
+    ```
+
+- Host *location*
+
+    ```bash
+    # Just playin'
+    host       www.google.com
+    whois      www.google.com
+    traceroute www.google.com
+    ```
+
+- Downloading stuff
+
+    ```bash
+    # Both of them are extremely useful ( & AWESOME )
+    #   I'll show only a little tiny piece of it in here :P
+    
+    wget https://bing.com
+    curl https://bing.com > bing_page.html
+    
+    for i in RANGE; 
+        do wget IMAGE_URL .. $i .. ;
+    done    
+    ```
+    
+- Datetime
+
+    ```bash
+    cal     # week + month + date
+    date    # week + month + date + time 
+    ```
 
 ### Short but elegant <small>( new perspective )</small>
 - Here you are 
     
     ```bash
     vimtutor                    # You definitely know what it is ..
+    
+    # prints the given str FOREVER
+    yes y
+    yes okay
+    yes | sudo apt-get install APP-1 APP-2 APP-3 ..
     
     file -b FILENAME            # type only, no filenames included
     file -i FILENAME            # MIME type ( ASCII text -> regular file )
@@ -129,6 +197,8 @@
     md5sum FILE-1
     md5sum FILE-1 FILE-2 >> MY_SUM
     md5sum          --check MY_SUM
+        
+    chsh -s /bin/zsh            # this one might be useless, even on Linux
         
     readlink /my-symlink        # e.g. /Volumes/Fusion/my-real-folder
     
@@ -202,4 +272,16 @@
     # 1    2    3
     # a    b    c
     paste -s number letter
+    ```
+
+- *Sequence*
+    
+    ```bash
+    seq 3        # END
+    seq 1 3      # START, END
+    seq 1 1 3    # START, STEP, END
+    
+    seq -w              7 10    #  => 07 08 09 10
+    seq -s '::'         7 10    #  => 7::8::9::10::
+    seq -f '----%g----' 7 10    #  => ----7---- (else were omitted)
     ```
