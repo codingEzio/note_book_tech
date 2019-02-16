@@ -5,9 +5,12 @@
     - System: [macOS High Sierra](https://en.wikipedia.org/wiki/MacOS_High_Sierra) + [Linux Lite](https://www.linuxliteos.com/download.php)
 - Notice
     - Some commands <small>( & params )</small> might *NOT* be available on *macOS*!!
+    - This is a **short** book.
 - For some commands
     - those might take too much time will be **skipped**
     - those are too irrelevant to my daily uses will be **skipped** as well
+- For those shell scripts
+    - *Spaces*, *spaces*, *spaces*.
 
 
 ### Miscellaneous 
