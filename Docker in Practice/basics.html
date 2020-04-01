@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Docker in Practice :: Notes</title>
+  </head>
+  <body>
+    <pre>
+Docker host machine -- Your machine
+Images              -- A pure "package" with meta-data, designing for particular goal (layer 1 == itself)
+Layers              -- Every separatable cmds in `Dockerfile` (wanna save space? comb as one-liner!)
+Containers          -- [1] Images+Layers [2] A base "system" with some *changes* (=> to accomp goal X)
+
+Images itself have layer(s) as well (1 == the base system itself)
+> Images(base system) + Layers  => Containers (type1: shipped as base system)   (base system, e.g. Ubuntu)
+> Images(base system  + layers) => Images     (type2: shipped as system+layers) (sys+layers,  e.g. Nginx)
+
+You can always commit/tag the running containers as new images.
+
+Meta-data e.g.
+~ env variables (for future containers)
+~ labels        (for images itself)
+
+Images it self don't change, but, that's not the point,
+we only need to decide whether *commit* the particular step (img+layer) as a base image.
+
+The images itself can't be modified -- yes, you cannot modify it
+The images itself can   be modified -- containers share their fs/else (mechanism makes we can *modify* it)
+
+Docker layering
++ Powered by 'Copy-on-Write' mechanism
+  ~ Whenever a container needs to write to a file, it **records the change** by copying it
+    to a new area of disk. When a `docker commit` is performed, the change (new area of disk)
+    is frozen and **recorded as a layer** with its own identifier.
++ Benefit
+  ~ Saving space
+  ~ Fast to boot (img+little_change) (container is the *litle change*)
+
+The author suggested that we should view the relationship as
+~ images     as classes
+~ containers as instances
+
+Key Docker commands
+`docker build`      -- Build an image (from the `Dockerfile`)
+`docker run`        -- Run an image as a container (run the 'img+layer' you built for particular purposes)
+`docker commit`     -- Commit a container as an image (packging specific 'img+layer' as a base "system")
+`docker tag`        -- Tag a Docker image (instead of ID by default)
+
+Tag!
+~ docker images                          -- list images (repo name, tag, ID, date, size)
+~ docker build --tag TAG_NAME Dockerfile -- build images with a tag
+~ docker tag IMAGE_ID TAG_NAME           -- tag previously built images
+
+Run containers #1
+$ docker run -i -t -p CONT_PORT:HOST_PORT --name CONTAINER_NAME IMAGE_TAG_NAME
+$ docker run -i -t -p 8000:8000           --name todo-example1  todo-built-1st-time
+
+Run containers #2
+$ docker start todo-example1  (to check its status use `docker ps -a`)
+
+`docker ps`
+~ docker ps         -- shows just running containers
+~ docker ps -a      -- shows them all
+~ docker ps --help
+
+misc commands
+~ docker diff CONTAINER_NAME (dir/file changes) (C: changed, A: added)
+
+`none: none` images (when you run `docker images --all`)
+- Some(IMO) of them are the *layers*
+- For us, the base is *node* & *todoapp*, the rest of them is the each building step
+
+So! Do we really need to delete those `none: none` images?
+~ Run `docker image prune` first, if it deletes nothing, then those are the good ones (*layer*)
+~ The previous cmd meant to delete those dangling images (those are bad, the layers are not)
+
+----------
+
+Docker daemon (C/S)
+= The command `docker COMMAND` is a client
+= The thing/behavior of it     is a server (waiting, make-resp-and-receive-req)
+
+RESTFul API
+- You talk with *Docker daemon* using HTTP
+- *Docker daemon* talks with Docker-Hub using HTTP
+- *Docker daemon* talks wiht other public Docker registry using HTTP
+- *Docker daemon* talks with private Docker registry using HTTP
+
+Open your daemons to the *world* (all machine in the local network | vm<>host)
+- I havn't try this since there isn't much motivation to do so.
+- But I did fetched some materials for future references :)
+- Scenarios #1 :: You wanna test it between your Host(macOS) & VM(Ubuntu)
+    1. Install   - https://phoenixnap.com/kb/how-to-install-docker-on-ubuntu-18-04
+    2. Configure - https://gist.github.com/styblope/dc55e0ad2a9848f2cc3307d4819d819f
+
+Why *open* the *demon*(daemon) to the world?
+~ Generally you shouldn't / needn't to this, but if you have a POWERFUL machine
+  which is dedicated to Docker inside a **secure** private local network,
+  doing this can make them be able to *MAKE USE OF THAT* (not bad huh?)
+
+Running containers as daemons (background)
+[HOST]
+$ docker run
+  -d    --detach
+  -i    --interactive
+  -p    1234:1234
+  --name nc-daemon
+  ubuntu:14.04
+  nc -l 1234
+
+[HOST] (testing)
+$ telnet localhost 1234
+xx       typing
+xx       typing
+CTRL+]   quit session
+q        quit telnet
+
+[HOST] (after testing)
+docker logs nc-daemon  ->  checking stuff
+docker rm   nc-daemon  ->  clean up
+
+-----------
+
+Here's three questions
++ What happens to the service if it fails?
++ What happens to the service when it terminates?
++ What happens                if the service keep failing over and over?
+
+Here's the solution (use `--restart` flag)
+~ docker run -d --restart=no ubuntu /bin/false  default
+~ docker run -d --restart=always                always restart when exits
+~ docker run -d --restart=on-failure            when returns a non-zero code (e.g. /bin/false)(:10 limit)
+~ docker run -d --restart=unless-stopped        restart when being explicity stopped (check more at doc)
+
+
+</pre
+    >
+  </body>
+</html>
