@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Django RESTful services - zwei</title>
+</head>
+<body>
+<pre>
+
+# Meta
+- Models (concept)
+    DroneCategory   cat-name
+    Drone           cat-fk, name, manu-date, parti-or-not, inserted-timestamp
+    Pilot           name, gender, how-many-races-parti, inserted-timestamp
+    Competition     pilot-fk, drone-fk, distance-in-feet, date-drone-reached-timestamp
+- Operations
+    - GET       single
+    - GET       list
+    - POST      add
+    - PUT       update
+    - PATCH     update
+    - DELETE    delete
+    - OPTIONS   check what methods are supported
+
+# Foreword
+- Bascically the same conf as the previous project, but a bit more complex.
+- Also, we added postgreSQL. Here's the steps
+    1. Basics
+        $ brew update && brew install postgresql
+        $ createuser -dP djrestful
+        $ createdb -E utf-8 -U djrestful drones
+    2. Configuration
+        'ENGINE'  : 'django.db.backends.postgresql',
+        'NAME'    : os.environ.get('POSTGRE_DRONE_DB_NAME'),
+        'USER'    : os.environ.get('POSTGRE_DRONE_DB_USER'),
+        'PASSWORD': os.environ.get('POSTGRE_DRONE_DB_PSWD'),
+    3. Sync to DB, a few notes here
+        since I was using sqlite before, you might be better run the initial
+        updates first (the basic tables like '...content_types'), then run the
+        new migrations (i.e. drones) (of course, do this AFTER you wrote those models)
+    4. Checking (check if our database is correctly created)
+        $           psql --username=djrestful --dbname=drones
+        drones=>    \dt                             list tables
+        drones=>    \d+ drones_drone                check column info
+        drones=>    SELECT * FROM drones_drone;
+
+HyperlinkedModelSerializer | ModelSerializer
+- Use hyperlinks to indicate relationships instead of primary key (I think)
+
+# Writing a bunch of serializers for different models
+- what's in there
+    `class Meta` controls what to display,
+    stuff outside of `Meta`, they do stuff like creating relationships
+- some hard parts
+    - view_name specify what view'd be used when users clicks on it (browse related models)
+    - SlugRelatedField "represents the target of the relationship"
+
+# Writing views
+    we're using another high level comparing to `APIView`, that is the generics.
+    We got two of them: ListCreateAPIView, RetrieveUpdateDestropAPIView, oh! just
+    remember, this kind of generics did almost all the stuff for us, the basic APIView
+    implemented methods like `create` & `update`, and the generics (bulit by many Mixins),
+    did the job like "what HTTP verbs are supported" kind of thing :)
+
+    After you've written those views (**List and **Detail), add `ApiRoot`
+    it basicall serves for the "routes" (list/ list/NUM)
+
+# Writing routes
+    One root routes,
+        url(r'^$',
+            views.ApiRoot.as_view(), name=views.ApiRoot.name),
+    and the rest is pretty the same
+        url(r'^drones/$',
+            views.DroneList.as_view(), name=views.DroneList.name),
+        url(r'^drones/(?P<pk>[0-9]+)$',
+            views.DroneDetail.as_view(), name=views.DroneDetail.name),
+    lastly,
+        add     url(r'^', include('drones.urls')),  (do NOT add 'namespace=..')
+        remove  'app_name' in 'drones/urls.py'
+
+----- ----- ----- -----
+
+# Adding constraints
+    simply add a new 'unique=True' to current 'name' field (DroneCat.. Drone Pilot)
+    then making migrations
+        $ ./manage.py makemigrations drones
+        $ ./manage.py migrate
+
+    Testing
+        ~ :8000/drone-categories/
+        ~ :8000/pilots/
+
+# Adding pagination feature
+    Two ways doing it
+        pages/4     4th page        maybe you have 3 items in page just saying)
+        offset 4,5  from 4, get 5   a lot more freedom (advanced paging IMHO)
+
+    Simply add this to achieve the basic pagination
+        REST_FRAMEWORK = {
+            'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+            'PAGE_SIZE'               : 3
+        }
+
+        Adding an upper bound to limit the items in one page
+        1. Add 'drones/custompagination.py'
+        2. Then override `LimitOffsetPagination` with `max_limit = 8`
+        3. Replace the default with 'drones.custompagination.YOUR_CLASS_NAME'
+
+        Then you can test it (whether it's browser or httpie)
+        $ http GET ":8000/drones/"
+        $ http GET ":8000/drones/?limit=1"
+        $ http GET ":8000/drones/?offset=2"
+        $ http GET ":8000/drones/?limit=3&offset=3"
+
+
+# Adding features like filtering|searching|sorting
+    New package needed (why 1.0.4? it's (100%) compatible with current djREST(3.6.4))
+        https://pypi.org/project/django-filter/1.0.4/
+
+        remember adding it to 'INSTALLED_APPS' ('django_filters',)
+        and adding the configurations ('DEFAULT_FILTER_BACKENDS': (.. .. ..))
+
+        There are the classes would be used
+        * rest_framework.filters.SearchFilter
+        * rest_framework.filters.OrderingFilter
+        * django_filters.rest_framework.filters.FilterSet
+        * django_filters.rest_framework.DjangoFilterBackend
+
+    Adding stuff to our view functions
+        Add these {
+            * filter_fields     powered by djfilter (~.rest_...DjangoFilterBackend)
+            * search_fields     powered by djrest   (~.filters.OrderingFilter)
+            * ordering_fields   powered by djrest   (~.filters.SearchFilter)
+        }
+
+        add three fields above to {
+            DroneCategoryList       filter/order by 'name', search 'name' (O => O..)
+            DroneCategoryDetail     filter/order by 'name', search 'name' (O => O..)
+            DroneList               f|o|s   ->  name/cat/manu-date/has-it-completed
+            PilotList               f|o|s   ->  name/gender/races_count
+            CompetitionList         f(customized) o(dist-feet,dist-date) s(nope)
+        }
+
+Notes on "Adding features like filtering|searching|sorting"
+
+    For those props who contains the same fields (aka. 'name')
+    > filter_fields     must be fullname (it's not searching)
+    > search_fields     depends on how you write it (^ OR = OR @ OR $)
+
+    About the props in view class
+    > filter_fields     it's a shortcut actually (just like the 'CompetitionFilter')
+    > search_fields     it actually based the built-in admin functionality (?S=XXX)
+    > ordering_fields   (based on serializer_class OR '__all__') or you control it
+
+    https://django-filter.readthedocs.io/en/1.1.0/ref/filters.html
+    > About the 'CompetitionFilter' (<= djfilter.FilterSet)
+        ~ first, we don't need the 'search' feature
+        ~ second, this time we use the FULL (not shortcut) to named the filter fields
+            + this time it's a class inherited from 'rest_.. .filters.FilterSet'
+              and we're also using the filters provided by 'django-filter'
+            + DateTimeFilter(
+                  label='WHAT_U_SEE_ABOVE_THE_FILTER_FORM',         // '👩 Pilots'
+                  name='THE_ACTUALY_FIELD_NAME_IN_THE_MODEL',       // 'drone__name'
+                  lookup_expr='EXPRESSIONS_LIKE_EXACT_CONTAINS_GTE' // 'lte'
+              )
+        ~ third, as for the 'DateTimeFilter', 'NumberFilter' ...
+            + a simple example
+                - DateTimeFilter  <> models.DateTimeFilter
+                - CharFilter      <> models.CharField, models.TextField
+        ~ fourth, the `class Meta` is pretty straightforward
+            + model     what models were related
+            + fields    what fields should be displayed at the form
+        ~ lastly, we add the 'filter_class' and the 'ordering_fields'
+            + filter_class = CompetitionFilter (customized filter (>filter_fields))
+            + ordering_fields (ordering by WHAT)
+
+    https://www.django-rest-framework.org/api-guide/filtering/#searchfilter
+    > Searching behavior
+      ~ ^name         starts-with     Search 'O' => "Olive", "Oriana"
+      ~ =username     exact matches   Search 'O' => \ (it has be full name)
+      ~ @ (Full-text, mySQL only)
+      ~ $ (Regex)
+
+
+    Testing it {
+        since Django REST framework also provided a browser UI
+        you can test in there and then copy/check the generated URLs/Params
+    }
+
+
+</pre>
+</body>
+</html>

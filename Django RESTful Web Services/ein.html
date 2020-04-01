@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Django RESTful services - ein</title>
+  </head>
+  <body>
+    <pre>
+
+# Meta
+- Use ✖︎rather latest Django (== 2.2.5 (LTS))
+- Use ✖︎latest djangorestframework
+    - [x] I'm reading the release notes
+        - https://www.django-rest-framework.org/community/release-notes/
+    - ✖︎ 3.10.3 latest
+    - ✔︎ 3.6.4  book
+- Softwares outside of Django/DjangoREST
+    - [x] curl (brew install curl)
+    - [x] httpie (brew install httpie)
+    - [x] Postman (or https://insomnia.rest/download/#mac)
+    - [x] Stoplight (https://stoplight.io/studio/)
+    - Android/iOS platform
+        - https://apps.apple.com/us/app/icurlhttp/id611943891
+        - https://play.google.com/store/apps/details?id=air.http.request&hl=en
+- Use Jupyter for debugging
+    1. Add these to Pipfile
+        django-extensions = "==2.2.1"
+        ipython = "==7.8.0"
+        jupyter = "==1.0.0
+    2. Add this to INSTALLED_APPS
+        'django_extensions',
+    3. Launch it
+        $ ./manage.py shell_plus --notebook
+    4. Before you start debugging, add these
+        >> import django
+        >> django.setup()
+
+# Operations
+- GET       single      /toys/
+- GET       list        /toys/1/
+- POST      add         /toys/      with post data (add)
+- PUT       update      /toys/1/    with post data (mod)
+- DELETE    delete      /toys/1/
+
+# Notice
+- Difference between httpie and curl
+    1. httpie is modern
+    2. curl   is faster and more powerful
+- The `POST` and `PUT` requires you provide all the fields
+    - if not, return `JSONResponse(toy_serializer.errors, ..)`
+    - You can use `PATCH` if u only wanna update a speciifc field.
+- "Content negotiation"
+    - If you ask the server some HTML (text/html), it should do it
+    - If you ask JSON instead, it should also act as you want
+    - What if you ASKED if you havn't implemented it
+        0. if curl { -H "Accept: text/html|application/json" -iX GET LINK }
+        1. http :8000/toys/ Accept:text/html    =>  JSON
+        2. http :8000/toys/ Accept:text/json    =>  JSON, still
+    - After you implemented (using @api_view), you can
+        - use 'OPTIONS'
+        - submit in different way (different parsers supported: JSON, form ..)
+        - render into different types of data (to JSON, or text/html)
+    - Test `application/x-www-form-urlencoded`
+        - curl              curl -iX POST -d '{"K":"V ..}' -H '..: ..form..' LINK
+        - httpie            http -f POST LINK K="V" ..
+        - Insomnia(GUI)     select 'Multipart Form', type data (don't add extra "")
+- Making different actions using browser
+    - __meta__
+        + add '?format=json' to get raw JSON results
+    - OPTIONS
+        + http://127.0.0.1:8000/toys/
+        + http://127.0.0.1:8000/toys/1
+    - GET
+        + http://127.0.0.1:8000/toys/
+        + http://127.0.0.1:8000/toys/1
+        + http://127.0.0.1:8000/toys/200
+    - POST
+        + http://127.0.0.1:8000/toys/   (submit using JSON, or form)
+    - PUT
+        + http://127.0.0.1:8000/toys/1  (submit using JSON, or form)
+    - DELETE
+        + http://127.0.0.1:8000/toys/1
+
+</pre
+    >
+  </body>
+</html>

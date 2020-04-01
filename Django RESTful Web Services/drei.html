@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Django RESTful services - drei</title>
+  </head>
+  <body>
+    <pre>
+Adding authentication
+
+    the end result should be like this (roughly)
+        0)    each drone has an owner
+        1)    read/write to the owner of the drone
+        2)    read only  to anyone except the owner | or users that havn't logged-in
+        misc) whenever a drone is created, it'll be attached to the request user :)
+
+    global conf
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.BasicAuthentication',
+            'rest_framework.authentication.SessionAuthentication',
+        ],
+
+    adding customized permission class (drones/custompermission.py)
+        class ClassName(..BasePermission):
+            ~ safe methods -> whatever              (R)
+            ~ not safe one -> check your identity   (R) (R/W)
+            def has_object_permission(..):
+                if SAFE:
+                    return True
+                else:
+                    return obj.owner == request.user
+
+    attaching "Users" to the "Drones"
+        ~ drones/models.py
+            owner = ..ForeignKey('auth.User', ..='drones', ..=..CASCADE)
+
+        ~ drones/serializers.py
+            class DroneCategorySerializer():
+                # just add an 'owner.username' read-only field
+
+            class UserDroneSerializer():
+                # Drone => url, name
+
+            class UserSerializer():
+                # User  => url, pk, username, drone (plus an `UserDroneSerializer`)
+
+        ~ drones/views.py
+            class DroneList(UNCHANGED):
+                ...
+                ...
+                def perform_update(..):
+                    .. save(owner=self.request.user)
+
+    setting permission policies
+        drones/views.py > DroneList & DroneDetail
+        [IMPORT]
+            from rest_framework import permissions
+            from drones         import custompermission
+        [APPEND]
+            permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                                  custompermission.IsCurrentUserOwnerOrReadOnly)
+
+    -------------------------
+
+    adding admins
+    @ Django
+        ./manage.py createsuperuser
+    @ PostgresQL
+        since we're just added the 'owner', we have to assign a default owner
+        to make it possible to ADD this new field WITHOUT delete those drones.
+
+        ./manage.py makemigrations drones
+            _ SELECT a one-off default now  (a default value for newly added field)
+            _ 1                             (default user for all 'owner' row)
+        ./manage.py migrate
+
+    adding browserable APIs
+        PROJ/urls.py
+            url(r'^api-auth/', include('rest_framework.urls'))
+
+    testing
+        http                            DELETE :8000/drones/6
+        http --auth "d":"YOUR_PASSWORD" DELETE :8000/drones/6
+
+        you can either use `curl`, `httpie`
+        or use Postman or Postman-like software like "Insomnia" (open source)
+
+    STATUS
+        basic authentication has been implemented (name plus password)
+
+    -----------------------
+
+Adding token-based authentication (along with the one we've created before)
+    Getting new models
+        # newly added tables (authtoken_token) store tokens & the fk to 'auth_user'
+        PROJ/settings.py
+            add 'rest_framework.authtoken' to 'INSTALLED_APPS'
+        PROJ/
+            run './manage.py migrate' (new models from the 'authtoken' app!)
+
+    New perm|auth classes for views
+        add this to `PilotList` & `PilotDetail` {
+            authentication_classes = (TokenAuthentication,) << rest.. .authentication
+            permission_classes     = (IsAuthenticated,)     << rest.. .permissions
+        }
+
+    Generate a token for authentication
+        well, normally you should be able to do this
+        you could also go '..:8000/admin/' to manually generate one
+
+        but I can't (and him: https://stackoverflow.com/q/52129128/6273859) {
+            from rest_framework.authtoken.models import Token
+            from django.contrib.auth.models      import User
+
+            u = User.objects.get(username='a')
+            t = Token.objects.create(user=u)
+
+            t.key
+        }
+
+    Okay now you should get the key, let's test
+        http :8000/pilots/
+        curl -iX GET localhost:8000/pilots/
+
+        http :8000/pilots/ "Authorization: Token YOUR_TOKEN"
+        curl -iX GET localhost:8000/pilots/ -H "Authorization: Token YOUR_TOKEN"
+</pre
+    >
+  </body>
+</html>

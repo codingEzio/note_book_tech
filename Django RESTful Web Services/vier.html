@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Django RESTful services - vier</title>
+  </head>
+  <body>
+    <pre>
+
+# Throttling
+- There is no limit whatsoever to anno/authed-user
+- we wanna achieve something like 'N requests per hour MAX'
+    ~  3 requests/hour FOR anno
+    ~ 10 requests/hour FOR authed
+    ~ 15 requests/hour FOR pilots-related views
+    ~ 20 requests/hour FOR drones-related views
+
+# Implementing the throttling mechanism
+    adding stuff to PROJ/settings.py
+        'DEFAULT_THROTTLE_CLASSES'      : (
+            'rest_framework.throttling.AnonRateThrottle',
+            'rest_framework.throttling.UserRateThrottle',
+        ),
+        'DEFAULT_THROTTLE_RATES'        : {
+            'anno'  : '3/hour',     # ..AnnoRateThrottle (scope = 'anno')
+            'user'  : '5/hour',     # ..UserRateThrottle (scope = 'user')
+            'drones': '20/hour',    # specify the 'scope' & 'class' by our own
+            'pilots': '16/hour',    # if you do by ur own, the defaults won't affect you
+        },
+
+    adding stuff to 'drones/views.py'
+        class DroneList|DroneDetail(..):
+            throttle_scope = 'drones'
+            throttle_classes = (ScopedRateThrottle, )
+            ...
+
+        class PilotList|PilotDetail(..):
+            throttle_scope = 'pilots'
+            throttle_classes = (ScopedRateThrottle, )
+            ...
+
+    testing
+        for i in {1..4}; do http                        :8000/competitions/1; done;
+        for i in {1..4}; do http -a "NAME":"PASSWD"     :8000/competitions/1; done;
+
+        for i in {1..20}; do http                       :8000/drones/1; done;
+        for i in {1..20}; do http -a "NAME":"PASSWD"    :8000/drones/1; done;
+
+        // I can't auth on ':8000/pilots/', weird ...
+
+
+--------------------
+
+
+Adding API versioning
+    Foreword
+        ~ "Creating a new version of your API should be a last resort."
+        ~ "Your API re-design becomes the consumer’s problem."
+        ~ "If possible, we'd always avoid any versioning scheme (adding complexities)"
+
+    ~ https://www.django-rest-framework.org/api-guide/versioning/#api-reference
+    There're different ways of doing this {
+        AcceptHeaderVersioning      'application/json; version=x.y'
+        HostNameVersioning          v2.WEBSITE.com/drones/
+        URLPathVersioning           ../v2/restservices/drones/
+        NamespaceVersioning [✔️]    same(to C) as URLPathVersioning (diff at backend)
+        QueryParameterVersioning    WEBSITE.com/?version=2
+    }
+
+    Since the thing we're implementing is a simple API, so the "versioning"
+    is quite simple here as well (only a little bit "customize" in the views.py)
+
+    Let me list the files that need to be changed
+    ~ PROJ/urls.py          routes for diff versions (& vN/api-auth for login/logout)
+    ~ drones/v2/urls.py     normal routes (for us, the regex part is a bit different)
+    ~ drones/v2/views.py    depend on your own (for us, we modified the "root" a little)
+
+
+----------------------
+
+
+Adding tests ★
+    Get needed packages
+        $ pipenv install pytest==3.5.1          # the versions are quite old
+        $ pipenv install pytest-django==3.2.1   # mainly for compatability reasons
+
+    ~ https://stackoverflow.com/a/54493489/6273859
+    Most-used pytest commands
+        $ pytest --collect-only     # find only without running
+        $ pytest --capture=no       # if you wanna see your `print` messages
+        $ pytest --verbose          #
+        $ pytest -r fp              # a short summary (f: failed, p: passed)
+        $ pytest PATH::CLASS:FUNC   # e.g. drones/tests.py::GreetingTest::test_ha
+
+    Snippets
+        self.client.credentials()   # clean up the credentials (if u need re-auth)
+
+
+    Notice
+        Since I'm just starting to touch on this topic, espically the
+        "versioning APIs" part. I'll just choose the dummy way of doing it,
+        add a prefix '/v1' to current 'reversed urls', not so smart but it's
+        working right now (I know it'll be a bad practice if your APIs got
+        more versions & more complex logic XD)
+
+    Epilogue
+        The part of the tests passes only if I run it separately,
+        that's really odd..
+
+THE END
+
+</pre
+    >
+  </body>
+</html>
