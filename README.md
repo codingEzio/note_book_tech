@@ -1,4 +1,7 @@
 ### Info
+- Docker in Practice
+- Django2 by Example
+- Django RESTful Web Services
 - Linux Pocket
 - How Linux Works
 - Software Testing Foundations
